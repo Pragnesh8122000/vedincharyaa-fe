@@ -1,0 +1,24 @@
+src/components/ChapterVersePicker.tsx(9,8): error TS2307: Cannot find module '@/components/ui/select' or its corresponding type declarations.
+src/components/ChapterVersePicker.tsx(61,37): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/components/ui/input-group.tsx(34,21): error TS2698: Spread types may only be created from object types.
+src/pages/geeta-shloks/GeetaShloks.tsx(2,5): error TS6133: 'AspectRatio' is declared but its value is never read.
+src/pages/geeta-shloks/GeetaShloks.tsx(5,5): error TS6133: 'Container' is declared but its value is never read.
+src/pages/geeta-shloks/GeetaShloks.tsx(8,5): error TS6133: 'IconButton' is declared but its value is never read.
+src/pages/geeta-shloks/GeetaShloks.tsx(11,5): error TS6133: 'Image' is declared but its value is never read.
+src/pages/geeta-shloks/GeetaShloks.tsx(12,5): error TS6133: 'Center' is declared but its value is never read.
+src/pages/HomePage.tsx(1,61): error TS6133: 'Button' is declared but its value is never read.
+src/pages/HomePage.tsx(2,32): error TS6133: 'FaCalendarDay' is declared but its value is never read.
+src/pages/SettingsPage.tsx(2,24): error TS2307: Cannot find module '@/components/ui/switch' or its corresponding type declarations.
+src/pages/SettingsPage.tsx(3,35): error TS2307: Cannot find module '@/components/ui/radio' or its corresponding type declarations.
+src/pages/SettingsPage.tsx(28,53): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/pages/SettingsPage.tsx(45,59): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/pages/SettingsPage.tsx(51,59): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/pages/ShlokDetailPage.tsx(8,1): error TS6133: 'useEffect' is declared but its value is never read.
+src/pages/ShlokDetailPage.tsx(153,34): error TS2322: Type '{ children: Element; justify: string; pt: number; pb: number; }' is not assignable to type 'IntrinsicAttributes & CardFooterProps & RefAttributes<HTMLDivElement>'.
+  Property 'justify' does not exist on type 'IntrinsicAttributes & CardFooterProps & RefAttributes<HTMLDivElement>'.
+src/pages/ShlokListPage.tsx(1,49): error TS6133: 'SimpleGrid' is declared but its value is never read.
+src/pages/ShlokListPage.tsx(1,61): error TS6133: 'Badge' is declared but its value is never read.
+src/pages/ShlokListPage.tsx(1,68): error TS6133: 'HStack' is declared but its value is never read.
+src/pages/ShlokListPage.tsx(1,76): error TS6133: 'Button' is declared but its value is never read.
+src/pages/ShlokListPage.tsx(14,8): error TS2307: Cannot find module '@/components/ui/select' or its corresponding type declarations.
+src/pages/ShlokListPage.tsx(72,41): error TS7006: Parameter 'e' implicitly has an 'any' type.
