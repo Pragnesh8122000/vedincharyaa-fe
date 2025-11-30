@@ -1,5 +1,5 @@
 import { Box, Container, Typography, Stack, Button, IconButton, Card, CardContent, CardActions, Divider, Snackbar, Alert, CircularProgress } from "@mui/material";
-import { ArrowBack, ContentCopy, Favorite, FavoriteBorder, Share, NavigateBefore, NavigateNext } from "@mui/icons-material";
+import { ArrowBack, ContentCopy, Favorite, FavoriteBorder, Share, NavigateBefore, NavigateNext, PlayArrow } from "@mui/icons-material";
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -7,14 +7,18 @@ import { getShlok } from "../api/shlokApi";
 import { getChapters } from "../api/chapterApi";
 import { addFavorite, removeFavorite, getFavorites } from "../api/favoritesApi";
 import { addHistory } from "../api/historyApi";
+import ShlokAudioPlayer from "../components/ShlokAudioPlayer";
+import { useAppSelector } from "../store/hooks";
 
 const ShlokDetailPage = () => {
     const { chapter, verse } = useParams();
     const navigate = useNavigate();
     const queryClient = useQueryClient();
+    const settings = useAppSelector((state) => state.shlok.settings);
 
     const [showCopyToast, setShowCopyToast] = useState(false);
     const [showEndToast, setShowEndToast] = useState(false);
+    const [isChapterPlayMode, setIsChapterPlayMode] = useState(false);
 
     const chapterNum = parseInt(chapter || "1");
     const verseNum = parseInt(verse || "1");
@@ -40,10 +44,6 @@ const ShlokDetailPage = () => {
     });
 
     const isFavorite = favorites.some(f => f.chapterNumber === chapterNum && f.verseNumber === verseNum);
-    // My API says removeFavorite takes shlokId. 
-    // But wait, removeFavorite in controller takes shlokId.
-    // And addFavorite takes shlokId.
-    // The shlok object has an ID like "1-1".
 
     // Add History on load
     const addHistoryMutation = useMutation({
@@ -91,8 +91,11 @@ const ShlokDetailPage = () => {
             navigate(`/shlok/${chapterNum}/${verseNum + 1}`);
         } else if (chapterNum < 18) {
             navigate(`/shlok/${chapterNum + 1}/1`);
+            // Stop chapter play mode if crossing chapters (optional choice)
+            // setIsChapterPlayMode(false); 
         } else {
             setShowEndToast(true);
+            setIsChapterPlayMode(false);
         }
     };
 
@@ -102,6 +105,16 @@ const ShlokDetailPage = () => {
         } else if (chapterNum > 1) {
             navigate(`/shlok/${chapterNum - 1}/1`);
         }
+    };
+
+    const handleAudioEnded = () => {
+        if (isChapterPlayMode || settings.autoPlayAudio) {
+            handleNext();
+        }
+    };
+
+    const toggleChapterPlay = () => {
+        setIsChapterPlayMode(!isChapterPlayMode);
     };
 
     const handleCopy = () => {
@@ -170,21 +183,45 @@ const ShlokDetailPage = () => {
                                 {shlok.transliteration}
                             </Typography>
 
+                            {/* Audio Player */}
+                            <Box width="100%">
+                                <ShlokAudioPlayer
+                                    audioUrl={shlok.audioUrl}
+                                    onEnded={handleAudioEnded}
+                                    autoPlay={isChapterPlayMode || settings.autoPlayAudio}
+                                    onNext={handleNext}
+                                    onPrevious={handlePrevious}
+                                    title={`Chapter ${chapterNum}, Verse ${verseNum}`}
+                                />
+                                <Box display="flex" justifyContent="center" mt={1}>
+                                    <Button
+                                        size="small"
+                                        startIcon={<PlayArrow />}
+                                        onClick={toggleChapterPlay}
+                                        color={isChapterPlayMode ? "primary" : "inherit"}
+                                    >
+                                        {isChapterPlayMode ? "Stop Chapter Play" : "Play Chapter"}
+                                    </Button>
+                                </Box>
+                            </Box>
+
                             <Divider flexItem />
 
                             {/* Translations */}
                             <Box width="100%" textAlign="left">
                                 <Stack spacing={3}>
-                                    <Box>
-                                        <Typography variant="subtitle2" color="primary" gutterBottom>
-                                            English Translation
-                                        </Typography>
-                                        <Typography variant="body1">
-                                            {shlok.translationEnglish}
-                                        </Typography>
-                                    </Box>
+                                    {settings.showEnglishTranslation && (
+                                        <Box>
+                                            <Typography variant="subtitle2" color="primary" gutterBottom>
+                                                English Translation
+                                            </Typography>
+                                            <Typography variant="body1">
+                                                {shlok.translationEnglish}
+                                            </Typography>
+                                        </Box>
+                                    )}
 
-                                    {shlok.translationHindi && (
+                                    {settings.showHindiTranslation && shlok.translationHindi && (
                                         <Box>
                                             <Typography variant="subtitle2" color="primary" gutterBottom>
                                                 Hindi Translation

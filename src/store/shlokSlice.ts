@@ -6,6 +6,7 @@ interface Settings {
     showEnglishTranslation: boolean;
     showHindiTranslation: boolean;
     theme: 'light' | 'dark';
+    autoPlayAudio: boolean;
 }
 
 interface ShlokState {
@@ -24,7 +25,8 @@ const loadState = (): ShlokState => {
                     fontSize: 'medium',
                     showEnglishTranslation: true,
                     showHindiTranslation: true,
-                    theme: 'light'
+                    theme: 'light',
+                    autoPlayAudio: false
                 },
                 recentShloks: []
             };
@@ -37,7 +39,8 @@ const loadState = (): ShlokState => {
                 fontSize: 'medium',
                 showEnglishTranslation: true,
                 showHindiTranslation: true,
-                theme: 'light'
+                theme: 'light',
+                autoPlayAudio: false
             },
             recentShloks: []
         };
