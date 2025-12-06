@@ -1,8 +1,7 @@
-```
+
 import {
     Box,
     Button,
-    Container,
     Stack,
     Typography,
     Paper,
@@ -76,4 +75,4 @@ const GeetaShloks = () => {
 };
 
 export default GeetaShloks;
-```
+

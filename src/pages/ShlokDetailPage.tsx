@@ -183,6 +183,30 @@ const ShlokDetailPage = () => {
                                 {shlok.transliteration}
                             </Typography>
 
+                            {/* Word Meanings */}
+                            {shlok.words && shlok.words.length > 0 && (
+                                <Box sx={{ mt: 2, mb: 2, width: '100%' }}>
+                                    <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                                        Word Meanings
+                                    </Typography>
+                                    <Box display="flex" flexWrap="wrap" justifyContent="center" gap={1}>
+                                        {shlok.words.map((word, index) => (
+                                            <Box key={index} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1, px: 1, py: 0.5, bgcolor: 'background.default' }}>
+                                                <Typography variant="body2" component="span" fontWeight="bold">
+                                                    {word.sanskrit}
+                                                </Typography>
+                                                <Typography variant="body2" component="span" color="text.secondary" sx={{ mx: 0.5 }}>
+                                                    :
+                                                </Typography>
+                                                <Typography variant="body2" component="span">
+                                                    {word.meaning}
+                                                </Typography>
+                                            </Box>
+                                        ))}
+                                    </Box>
+                                </Box>
+                            )}
+
                             {/* Audio Player */}
                             <Box width="100%">
                                 <ShlokAudioPlayer

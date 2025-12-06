@@ -12,6 +12,10 @@ export interface Shlok {
     hindi?: string;
   };
   tags?: string[];
+  words?: {
+    sanskrit: string;
+    meaning: string;
+  }[];
 }
 
 export interface Chapter {

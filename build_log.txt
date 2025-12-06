@@ -1,0 +1,5 @@
+src/components/Layout.tsx(8,11): error TS6133: 'theme' is declared but its value is never read.
+src/pages/geeta-shloks/GeetaShloks.tsx(1,1): error TS2349: This expression is not callable.
+  Type 'String' has no call signatures.
+src/pages/MemorizationPage.tsx(2,83): error TS6133: 'IconButton' is declared but its value is never read.
+src/pages/MemorizationPage.tsx(2,102): error TS6133: 'Alert' is declared but its value is never read.

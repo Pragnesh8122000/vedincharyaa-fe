@@ -1,11 +1,10 @@
-import { AppBar, Box, Container, Toolbar, Typography, IconButton, Stack, useTheme } from "@mui/material";
+import { AppBar, Box, Container, Toolbar, Typography, IconButton, Stack } from "@mui/material";
 import { Link, Outlet, useLocation } from "react-router-dom";
-import { Home, MenuBook, Favorite, Settings, Brightness4, Brightness7, History } from "@mui/icons-material";
+import { Home, MenuBook, Favorite, Settings, Brightness4, Brightness7, History, School } from "@mui/icons-material";
 import { useColorMode } from "../context/ThemeContext";
 
 const Layout = () => {
     const { mode, toggleColorMode } = useColorMode();
-    const theme = useTheme();
     const location = useLocation();
 
     const isActive = (path: string) => location.pathname === path;
@@ -41,6 +40,11 @@ const Layout = () => {
                             <Link to="/history">
                                 <IconButton color={isActive('/history') ? "primary" : "default"} aria-label="History">
                                     <History />
+                                </IconButton>
+                            </Link>
+                            <Link to="/memorize">
+                                <IconButton color={isActive('/memorize') ? "primary" : "default"} aria-label="Memorize">
+                                    <School />
                                 </IconButton>
                             </Link>
                             <Link to="/settings">

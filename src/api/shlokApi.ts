@@ -10,6 +10,10 @@ export interface Shlok {
     translationHindi: string;
     tags: string[];
     audioUrl?: string;
+    words?: {
+        sanskrit: string;
+        meaning: string;
+    }[];
 }
 
 

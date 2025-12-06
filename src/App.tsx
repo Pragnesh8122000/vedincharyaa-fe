@@ -8,6 +8,7 @@ import FavoritesPage from './pages/FavoritesPage'
 import SettingsPage from './pages/SettingsPage'
 
 import HistoryPage from './pages/HistoryPage'
+import MemorizationPage from './pages/MemorizationPage'
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
           <Route path="shlok/:chapter/:verse" element={<ShlokDetailPage />} />
           <Route path="favorites" element={<FavoritesPage />} />
           <Route path="history" element={<HistoryPage />} />
+          <Route path="memorize" element={<MemorizationPage />} />
           <Route path="settings" element={<SettingsPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
