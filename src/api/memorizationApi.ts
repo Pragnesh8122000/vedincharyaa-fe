@@ -15,32 +15,46 @@ export interface DueShlok extends Shlok {
 }
 
 export const getDueShloks = async (): Promise<DueShlok[]> => {
-    const response = await apiClient<DueShlok[]>('/memorization/due');
-    return response;
+    const response = await apiClient<{ data: DueShlok[] }>('/memorization/due');
+    return response.data.data;
+};
+
+export const getAllMemorization = async (): Promise<MemorizationProgress[]> => {
+    const response = await apiClient<{ data: MemorizationProgress[] }>('/memorization');
+    return response.data.data;
 };
 
 export const updateProgress = async (chapter: number, verse: number, isCorrect: boolean) => {
-    const response = await apiClient<{ message: string; progress: MemorizationProgress }>('/memorization/progress', {
+    const response = await apiClient<{ data: { message: string; progress: MemorizationProgress } }>('/memorization/progress', {
         method: 'POST',
-        body: JSON.stringify({ 
+        data: JSON.stringify({ 
             chapterNumber: chapter, 
             verseNumber: verse, 
-            isCorrect,
-            // TODO: Get real userId
-            userId: 'dummy_user_id'
+            isCorrect
         })
     });
-    return response;
+    return response.data.data;
 };
 
 export const startMemorization = async (chapter: number, verse: number) => {
-    const response = await apiClient<MemorizationProgress>('/memorization/start', {
+    const response = await apiClient<{ data: MemorizationProgress }>('/memorization/start', {
         method: 'POST',
-        body: JSON.stringify({ 
+        data: JSON.stringify({ 
             chapterNumber: chapter, 
-            verseNumber: verse,
-            userId: 'dummy_user_id'
+            verseNumber: verse
         })
     });
-    return response;
+    return response.data.data;
+};
+
+export const removeMemorization = async (chapter: number, verse: number) => {
+    const response = await apiClient<{ data: any }>('/memorization/remove', {
+        method: 'POST', // Using POST for remove as defined in controller (or DELETE? Controller uses removeProgress logic which usually is DELETE but route file matters)
+        // Controller function is `removeProgress`, usually mapped to DELETE or POST. Assuming POST based on existing code.
+        data: JSON.stringify({ 
+            chapterNumber: chapter, 
+            verseNumber: verse
+        })
+    });
+    return response.data.data;
 };

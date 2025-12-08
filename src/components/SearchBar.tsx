@@ -1,4 +1,5 @@
-import { TextField, InputAdornment, Box, IconButton } from "@mui/material";
+import { TextField, InputAdornment, Box } from "@mui/material";
+import IconTooltip from "./IconTooltip";
 import { Search, Clear } from "@mui/icons-material";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -51,9 +52,9 @@ const SearchBar = ({ initialValue = "", onSearch }: SearchBarProps) => {
                         ),
                         endAdornment: query && (
                             <InputAdornment position="end">
-                                <IconButton onClick={handleClear} edge="end">
+                                <IconTooltip title="Clear search" onClick={handleClear} edge="end">
                                     <Clear />
-                                </IconButton>
+                                </IconTooltip>
                             </InputAdornment>
                         ),
                         sx: { bgcolor: 'background.paper', borderRadius: 2 }

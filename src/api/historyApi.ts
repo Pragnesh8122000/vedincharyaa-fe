@@ -6,8 +6,8 @@ export interface HistoryItem extends Shlok {
     viewedAt: string;
 }
 
-export const getHistory = () => apiClient<HistoryItem[]>('/history');
-export const addHistory = (shlokId: string) => apiClient<HistoryItem>('/history', {
+export const getHistory = async () => (await apiClient<{ data: HistoryItem[] }>('/history')).data.data;
+export const addHistory = (shlokId: string) => apiClient<{ data: HistoryItem }>('/history', {
     method: 'POST',
-    body: JSON.stringify({ shlokId })
-});
+    data: JSON.stringify({ shlokId })
+}).then(res => res.data.data);

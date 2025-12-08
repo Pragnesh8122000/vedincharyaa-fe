@@ -1,4 +1,4 @@
-import { Box, Container, Typography, Stack, CircularProgress, Button, Chip } from "@mui/material";
+import { Box, Container, Typography, Stack, CircularProgress, Button, Chip, Tooltip } from "@mui/material";
 import { FilterList } from "@mui/icons-material";
 import { useSearchParams } from "react-router-dom";
 import { useState } from "react";
@@ -68,30 +68,32 @@ const ShlokListPage = () => {
 
                 <Stack direction="row" spacing={2}>
                     <SearchBar initialValue={searchQuery} onSearch={handleSearch} />
-                    <Button
-                        variant="outlined"
-                        startIcon={<FilterList />}
-                        onClick={() => setIsFilterOpen(true)}
-                        sx={{ minWidth: 120 }}
-                    >
-                        Filters
-                        {(filters.chapterNumbers.length > 0 || filters.tags.length > 0) && (
-                            <Box component="span" sx={{
-                                ml: 1,
-                                bgcolor: 'primary.main',
-                                color: 'white',
-                                borderRadius: '50%',
-                                width: 20,
-                                height: 20,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                fontSize: '0.75rem'
-                            }}>
-                                {filters.chapterNumbers.length + filters.tags.length}
-                            </Box>
-                        )}
-                    </Button>
+                    <Tooltip title="Filter shloks">
+                        <Button
+                            variant="outlined"
+                            startIcon={<FilterList />}
+                            onClick={() => setIsFilterOpen(true)}
+                            sx={{ minWidth: 120 }}
+                        >
+                            Filters
+                            {(filters.chapterNumbers.length > 0 || filters.tags.length > 0) && (
+                                <Box component="span" sx={{
+                                    ml: 1,
+                                    bgcolor: 'primary.main',
+                                    color: 'white',
+                                    borderRadius: '50%',
+                                    width: 20,
+                                    height: 20,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    fontSize: '0.75rem'
+                                }}>
+                                    {filters.chapterNumbers.length + filters.tags.length}
+                                </Box>
+                            )}
+                        </Button>
+                    </Tooltip>
                 </Stack>
 
                 {/* Active Filters Display */}

@@ -16,8 +16,6 @@ export interface Shlok {
     }[];
 }
 
-
-
 export interface Pagination {
     total: number;
     page: number;
@@ -31,7 +29,7 @@ export interface ShlokResponse {
     pagination: Pagination;
 }
 
-export const getShloks = (params: { 
+export const getShloks = async (params: { 
     chapterNumber?: number; 
     chapterNumbers?: string;
     tags?: string;
@@ -47,7 +45,7 @@ export const getShloks = (params: {
     if (params.page) query.append('page', params.page.toString());
     if (params.limit) query.append('limit', params.limit.toString());
     
-    return apiClient<ShlokResponse>(`/shloks?${query.toString()}`);
+    return (await apiClient<{ data: ShlokResponse }>(`/shloks?${query.toString()}`)).data.data;
 };
 
-export const getShlok = (chapter: number, verse: number) => apiClient<Shlok>(`/shloks/${chapter}/${verse}`);
+export const getShlok = async (chapter: number, verse: number) => (await apiClient<{ data: Shlok }>(`/shloks/${chapter}/${verse}`)).data.data;

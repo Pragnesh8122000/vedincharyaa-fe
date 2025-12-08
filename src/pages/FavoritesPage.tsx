@@ -1,6 +1,6 @@
 import { Box, Container, Typography, Stack, Button, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, CircularProgress } from "@mui/material";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getFavorites, clearFavorites } from "../api/favoritesApi";
+import { getFavorites, clearFavorites, removeFavorite } from "../api/favoritesApi";
 import ShlokCard from "../components/ShlokCard";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
@@ -23,8 +23,20 @@ const FavoritesPage = () => {
         }
     });
 
+    const removeMutation = useMutation({
+        mutationFn: removeFavorite,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['favorites'] });
+        }
+    });
+
     const handleClearFavorites = () => {
         clearMutation.mutate();
+    };
+
+    const handleRemove = (chapter: number, verse: number) => {
+        const shlokId = `${chapter}-${verse}`;
+        removeMutation.mutate(shlokId);
     };
 
     return (
@@ -52,7 +64,11 @@ const FavoritesPage = () => {
                 ) : favorites.length > 0 ? (
                     <Stack spacing={2}>
                         {favorites.map((shlok) => (
-                            <ShlokCard key={`${shlok.chapterNumber}-${shlok.verseNumber}`} shlok={shlok} />
+                            <ShlokCard
+                                key={`${shlok.chapterNumber}-${shlok.verseNumber}`}
+                                shlok={shlok}
+                                onRemove={() => handleRemove(shlok.chapterNumber, shlok.verseNumber)}
+                            />
                         ))}
                     </Stack>
                 ) : (

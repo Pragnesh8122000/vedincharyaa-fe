@@ -29,7 +29,7 @@ const FilterDialog = ({ open, onClose, onApply, chapters, initialFilters }: Filt
     const [selectedChapters, setSelectedChapters] = useState<number[]>([]);
     const [tags, setTags] = useState<string[]>([]);
     const [tagInput, setTagInput] = useState("");
-
+    console.log({ chapters })
     useEffect(() => {
         if (open) {
             setSelectedChapters(initialFilters.chapterNumbers);
@@ -101,7 +101,7 @@ const FilterDialog = ({ open, onClose, onApply, chapters, initialFilters }: Filt
                                 },
                             }}
                         >
-                            {chapters.map((chapter) => (
+                            {chapters?.map((chapter) => (
                                 <MenuItem key={chapter.chapterNumber} value={chapter.chapterNumber}>
                                     Chapter {chapter.chapterNumber}: {chapter.chapterName}
                                 </MenuItem>

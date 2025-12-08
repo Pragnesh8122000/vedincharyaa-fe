@@ -6,15 +6,17 @@ export interface Favorite extends Shlok {
     addedAt: string;
 }
 
-export const getFavorites = () => apiClient<Favorite[]>('/favorites');
-export const addFavorite = (shlokId: string) => apiClient<Favorite>('/favorites', {
+export const getFavorites = async () => (await apiClient<{ data: Favorite[] }>('/favorites')).data.data;
+
+export const addFavorite = (shlokId: string) => apiClient<{ data: { shlokId: string } }>('/favorites', {
     method: 'POST',
-    body: JSON.stringify({ shlokId })
-});
-export const removeFavorite = (shlokId: string) => apiClient<{ message: string }>(`/favorites/${shlokId}`, {
+    data: JSON.stringify({ shlokId })
+}).then(res => res.data.data);
+
+export const removeFavorite = (shlokId: string) => apiClient<{ data: { shlokId: string } }>(`/favorites/${shlokId}`, {
     method: 'DELETE'
-});
+}).then(res => res.data.data);
 
 export const clearFavorites = () => apiClient<{ message: string }>('/favorites', {
     method: 'DELETE'
-});
+}).then(res => res.data); // data contains { message }

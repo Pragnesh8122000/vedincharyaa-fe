@@ -1,33 +1,50 @@
 import { useState, useEffect } from 'react';
-import { Box, Container, Typography, Button, Card, CardContent, CircularProgress, Stack } from '@mui/material';
+import { Box, Container, Typography, Button, Card, CardContent, CircularProgress, Stack, Tooltip } from '@mui/material';
 import { ArrowBack, Check, Close, Refresh } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import { getDueShloks, updateProgress, DueShlok } from '../api/memorizationApi';
+import { memorizationService } from '../services/memorizationService';
+import { getShlok, Shlok } from '../api/shlokApi';
 
 const MemorizationPage = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
-    const [dueShloks, setDueShloks] = useState<DueShlok[]>([]);
+    const [dueShloks, setDueShloks] = useState<Shlok[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isFlipped, setIsFlipped] = useState(false);
-    const [showResult, setShowResult] = useState(false); // To show "Finished" state
-
-    const fetchDue = async () => {
-        setLoading(true);
-        try {
-            const data = await getDueShloks();
-            setDueShloks(data);
-            setCurrentIndex(0);
-            setShowResult(false);
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setLoading(false);
-        }
-    };
+    const [showResult, setShowResult] = useState(false);
 
     useEffect(() => {
-        fetchDue();
+        const loadDueShloks = async () => {
+            setLoading(true);
+            try {
+                const allProgress = await memorizationService.getAll();
+                // Simple logic: Review everything that is "learning"
+                const learningItems = allProgress.filter((p: any) => p.status === 'learning');
+
+                if (learningItems.length === 0) {
+                    setDueShloks([]);
+                    setLoading(false);
+                    return;
+                }
+
+                // Fetch details for each item
+                const promises = learningItems.map((item: any) => {
+                    const [chapter, verse] = item.shlokId.split('-');
+                    return getShlok(parseInt(chapter), parseInt(verse))
+                        .catch(() => null);
+                });
+
+                const results = await Promise.all(promises);
+                const validShloks = results.filter((s): s is Shlok => s !== null);
+                setDueShloks(validShloks);
+            } catch (error) {
+                console.error("Failed to load due shloks", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadDueShloks();
     }, []);
 
     const handleNext = () => {
@@ -41,16 +58,10 @@ const MemorizationPage = () => {
 
     const handleRate = async (isCorrect: boolean) => {
         const currentShlok = dueShloks[currentIndex];
-        // Optimistic update
-        handleNext();
+        const shlokId = `${currentShlok.chapterNumber}-${currentShlok.verseNumber}`;
 
-        // API Call
-        try {
-            await updateProgress(currentShlok.chapterNumber, currentShlok.verseNumber, isCorrect);
-        } catch (error) {
-            console.error('Failed to update progress', error);
-            // Ideally rollback UI or show toast
-        }
+        await memorizationService.updateProgress(currentShlok.chapterNumber, currentShlok.verseNumber, isCorrect);
+        handleNext();
     };
 
     if (loading) {
@@ -71,10 +82,10 @@ const MemorizationPage = () => {
                     {dueShloks.length > 0 ? "Great job reviewing your cards." : "No cards due for review right now."}
                 </Typography>
                 <Button variant="contained" onClick={() => navigate('/browse')}>
-                    Learn New Shloks
+                    Find New Shloks to Learn
                 </Button>
                 <Box mt={2}>
-                    <Button startIcon={<Refresh />} onClick={fetchDue}>
+                    <Button startIcon={<Refresh />} onClick={() => window.location.reload()}>
                         Refresh
                     </Button>
                 </Box>
@@ -83,6 +94,9 @@ const MemorizationPage = () => {
     }
 
     const currentShlok = dueShloks[currentIndex];
+
+    // Safety check
+    if (!currentShlok) return null;
 
     return (
         <Container maxWidth="sm" sx={{ py: 4 }}>
@@ -124,7 +138,7 @@ const MemorizationPage = () => {
                     p: 4
                 }}>
                     {/* Front Side */}
-                    <Typography variant="h5" sx={{ fontFamily: 'serif', fontWeight: 'bold' }}>
+                    <Typography variant="h5" sx={{ fontFamily: 'serif', fontWeight: 'bold', textAlign: 'center' }}>
                         {currentShlok.sanskritText}
                     </Typography>
                     <Typography variant="caption" color="text.secondary" mt={2}>
@@ -157,22 +171,26 @@ const MemorizationPage = () => {
 
             {isFlipped && (
                 <Stack direction="row" justifyContent="center" spacing={4} mt={4}>
-                    <Button
-                        variant="outlined"
-                        color="error"
-                        startIcon={<Close />}
-                        onClick={(e) => { e.stopPropagation(); handleRate(false); }}
-                    >
-                        Forgot
-                    </Button>
-                    <Button
-                        variant="contained"
-                        color="success"
-                        startIcon={<Check />}
-                        onClick={(e) => { e.stopPropagation(); handleRate(true); }}
-                    >
-                        Recall It
-                    </Button>
+                    <Tooltip title="I forgot this" arrow>
+                        <Button
+                            variant="outlined"
+                            color="error"
+                            startIcon={<Close />}
+                            onClick={(e) => { e.stopPropagation(); handleRate(false); }}
+                        >
+                            Forgot
+                        </Button>
+                    </Tooltip>
+                    <Tooltip title="I remembered this" arrow>
+                        <Button
+                            variant="contained"
+                            color="success"
+                            startIcon={<Check />}
+                            onClick={(e) => { e.stopPropagation(); handleRate(true); }}
+                        >
+                            Recall It
+                        </Button>
+                    </Tooltip>
                 </Stack>
             )}
         </Container>

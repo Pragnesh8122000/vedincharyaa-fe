@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
-import { Box, IconButton, Slider, Typography, CircularProgress, Paper, Stack, Tooltip } from '@mui/material';
+import { Box, Slider, Typography, CircularProgress, Paper, Stack } from '@mui/material';
+import IconTooltip from './IconTooltip';
 import { PlayArrow, Pause, Repeat, RepeatOne, SkipNext, SkipPrevious } from '@mui/icons-material';
 
 interface ShlokAudioPlayerProps {
@@ -145,13 +146,14 @@ const ShlokAudioPlayer = ({
 
                 <Stack direction="row" alignItems="center" spacing={2} justifyContent="center">
                     {onPrevious && (
-                        <IconButton onClick={onPrevious} size="small">
+                        <IconTooltip title="Previous shlok" onClick={onPrevious} size="small">
                             <SkipPrevious />
-                        </IconButton>
+                        </IconTooltip>
                     )}
 
                     <Box sx={{ position: 'relative' }}>
-                        <IconButton
+                        <IconTooltip
+                            title={isPlaying ? "Pause audio" : "Play audio"}
                             onClick={togglePlay}
                             disabled={isLoading}
                             color="primary"
@@ -170,13 +172,13 @@ const ShlokAudioPlayer = ({
                             ) : (
                                 <PlayArrow fontSize="large" />
                             )}
-                        </IconButton>
+                        </IconTooltip>
                     </Box>
 
                     {onNext && (
-                        <IconButton onClick={onNext} size="small">
+                        <IconTooltip title="Next shlok" onClick={onNext} size="small">
                             <SkipNext />
-                        </IconButton>
+                        </IconTooltip>
                     )}
                 </Stack>
 
@@ -198,15 +200,14 @@ const ShlokAudioPlayer = ({
                         {formatTime(duration)}
                     </Typography>
 
-                    <Tooltip title={isRepeat ? "Disable Repeat" : "Enable Repeat"}>
-                        <IconButton
-                            size="small"
-                            onClick={() => setIsRepeat(!isRepeat)}
-                            color={isRepeat ? "primary" : "default"}
-                        >
-                            {isRepeat ? <RepeatOne fontSize="small" /> : <Repeat fontSize="small" />}
-                        </IconButton>
-                    </Tooltip>
+                    <IconTooltip
+                        title="Repeat this shlok"
+                        size="small"
+                        onClick={() => setIsRepeat(!isRepeat)}
+                        color={isRepeat ? "primary" : "default"}
+                    >
+                        {isRepeat ? <RepeatOne fontSize="small" /> : <Repeat fontSize="small" />}
+                    </IconTooltip>
                 </Stack>
             </Stack>
         </Paper>

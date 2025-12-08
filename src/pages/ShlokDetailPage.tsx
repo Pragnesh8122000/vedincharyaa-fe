@@ -1,4 +1,4 @@
-import { Box, Container, Typography, Stack, Button, IconButton, Card, CardContent, CardActions, Divider, Snackbar, Alert, CircularProgress } from "@mui/material";
+import { Box, Container, Typography, Stack, Button, Card, CardContent, CardActions, Divider, CircularProgress, Tooltip } from "@mui/material";
 import { ArrowBack, ContentCopy, Favorite, FavoriteBorder, Share, NavigateBefore, NavigateNext, PlayArrow } from "@mui/icons-material";
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
@@ -9,15 +9,19 @@ import { addFavorite, removeFavorite, getFavorites } from "../api/favoritesApi";
 import { addHistory } from "../api/historyApi";
 import ShlokAudioPlayer from "../components/ShlokAudioPlayer";
 import { useAppSelector } from "../store/hooks";
+import { memorizationService } from "../services/memorizationService";
+import { School } from "@mui/icons-material";
+import IconTooltip from "../components/IconTooltip";
+
+import { useToast } from "../providers/ToastProvider";
 
 const ShlokDetailPage = () => {
     const { chapter, verse } = useParams();
     const navigate = useNavigate();
     const queryClient = useQueryClient();
     const settings = useAppSelector((state) => state.shlok.settings);
+    const { showToast } = useToast();
 
-    const [showCopyToast, setShowCopyToast] = useState(false);
-    const [showEndToast, setShowEndToast] = useState(false);
     const [isChapterPlayMode, setIsChapterPlayMode] = useState(false);
 
     const chapterNum = parseInt(chapter || "1");
@@ -43,7 +47,7 @@ const ShlokDetailPage = () => {
         queryFn: getFavorites
     });
 
-    const isFavorite = favorites.some(f => f.chapterNumber === chapterNum && f.verseNumber === verseNum);
+
 
     // Add History on load
     const addHistoryMutation = useMutation({
@@ -59,11 +63,38 @@ const ShlokDetailPage = () => {
         }
     }, [shlok?.id]);
 
+    // State for local UI
+    const [isFavOptimistic, setIsFavOptimistic] = useState(false);
+    const [isMemoOptimistic, setIsMemoOptimistic] = useState(false);
+
+    // Initialize state when data loads
+    useEffect(() => {
+        if (favorites.some(f => f.chapterNumber === chapterNum && f.verseNumber === verseNum)) {
+            setIsFavOptimistic(true);
+        } else {
+            setIsFavOptimistic(false);
+        }
+
+        const checkMemorization = async () => {
+            try {
+                const memo = await memorizationService.getById(`${chapterNum}-${verseNum}`);
+                setIsMemoOptimistic(!!memo);
+            } catch (e) {
+                console.error("Failed to check memorization status", e);
+            }
+        };
+        checkMemorization();
+    }, [favorites, chapterNum, verseNum]);
+
     // Favorite Mutations
     const addFavMutation = useMutation({
         mutationFn: addFavorite,
         onSuccess: () => {
+            // Refetch optional, but good for consistency
             queryClient.invalidateQueries({ queryKey: ['favorites'] });
+        },
+        onError: () => {
+            setIsFavOptimistic(false); // Revert
         }
     });
 
@@ -71,15 +102,34 @@ const ShlokDetailPage = () => {
         mutationFn: removeFavorite,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['favorites'] });
+        },
+        onError: () => {
+            setIsFavOptimistic(true); // Revert
         }
     });
 
     const handleToggleFavorite = () => {
         if (!shlok) return;
-        if (isFavorite) {
-            removeFavMutation.mutate(shlok.id);
+        const shlokId = `${shlok.chapterNumber}-${shlok.verseNumber}`;
+
+        if (isFavOptimistic) {
+            setIsFavOptimistic(false);
+            removeFavMutation.mutate(shlokId);
         } else {
-            addFavMutation.mutate(shlok.id);
+            setIsFavOptimistic(true);
+            addFavMutation.mutate(shlokId);
+        }
+    };
+
+    const handleToggleMemorization = async () => {
+        if (!shlok) return;
+
+        if (isMemoOptimistic) {
+            setIsMemoOptimistic(false);
+            await memorizationService.remove(shlok.chapterNumber, shlok.verseNumber);
+        } else {
+            setIsMemoOptimistic(true);
+            await memorizationService.add(shlok.chapterNumber, shlok.verseNumber);
         }
     };
 
@@ -94,7 +144,7 @@ const ShlokDetailPage = () => {
             // Stop chapter play mode if crossing chapters (optional choice)
             // setIsChapterPlayMode(false); 
         } else {
-            setShowEndToast(true);
+            showToast('You have reached the end of the Bhagavad Gita.', 'info');
             setIsChapterPlayMode(false);
         }
     };
@@ -121,7 +171,7 @@ const ShlokDetailPage = () => {
         if (shlok) {
             const text = `${shlok.sanskritText}\n\n${shlok.transliteration}\n\n${shlok.translationEnglish}`;
             navigator.clipboard.writeText(text);
-            setShowCopyToast(true);
+            showToast('Shlok copied to clipboard!', 'success');
         }
     };
 
@@ -155,15 +205,15 @@ const ShlokDetailPage = () => {
                         Back
                     </Button>
                     <Stack direction="row" spacing={1}>
-                        <IconButton onClick={handlePrevious} disabled={chapterNum === 1 && verseNum === 1}>
+                        <IconTooltip title="Previous shlok" onClick={handlePrevious} disabled={chapterNum === 1 && verseNum === 1}>
                             <NavigateBefore />
-                        </IconButton>
+                        </IconTooltip>
                         <Typography variant="h6" sx={{ alignSelf: 'center' }}>
                             {chapterNum}.{verseNum}
                         </Typography>
-                        <IconButton onClick={handleNext}>
+                        <IconTooltip title="Next shlok" onClick={handleNext}>
                             <NavigateNext />
-                        </IconButton>
+                        </IconTooltip>
                     </Stack>
                 </Stack>
 
@@ -186,9 +236,12 @@ const ShlokDetailPage = () => {
                             {/* Word Meanings */}
                             {shlok.words && shlok.words.length > 0 && (
                                 <Box sx={{ mt: 2, mb: 2, width: '100%' }}>
-                                    <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                                        Word Meanings
-                                    </Typography>
+                                    <Stack direction="row" alignItems="center" gap={1} mb={1}>
+                                        <Typography variant="subtitle2" color="text.secondary">
+                                            Word Meanings
+                                        </Typography>
+                                    </Stack>
+
                                     <Box display="flex" flexWrap="wrap" justifyContent="center" gap={1}>
                                         {shlok.words.map((word, index) => (
                                             <Box key={index} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1, px: 1, py: 0.5, bgcolor: 'background.default' }}>
@@ -264,34 +317,34 @@ const ShlokDetailPage = () => {
 
                     <CardActions sx={{ justifyContent: 'space-between', px: 3, py: 2 }}>
                         <Stack direction="row" spacing={1}>
-                            <Button
-                                startIcon={isFavorite ? <Favorite /> : <FavoriteBorder />}
-                                color={isFavorite ? "error" : "inherit"}
-                                onClick={handleToggleFavorite}
-                            >
-                                {isFavorite ? "Saved" : "Save"}
-                            </Button>
-                            <Button startIcon={<Share />}>Share</Button>
+                            <Tooltip title={isFavOptimistic ? "Remove from favorites" : "Save to favorites"}>
+                                <Button
+                                    startIcon={isFavOptimistic ? <Favorite /> : <FavoriteBorder />}
+                                    color={isFavOptimistic ? "error" : "inherit"}
+                                    onClick={handleToggleFavorite}
+                                >
+                                    {isFavOptimistic ? "Saved" : "Save"}
+                                </Button>
+                            </Tooltip>
+                            <Tooltip title={isMemoOptimistic ? "In memorization" : "Save for memorization"}>
+                                <Button
+                                    startIcon={<School />}
+                                    color={isMemoOptimistic ? "secondary" : "inherit"}
+                                    onClick={handleToggleMemorization}
+                                >
+                                    {isMemoOptimistic ? "Memorizing" : "Memorize"}
+                                </Button>
+                            </Tooltip>
+                            <Tooltip title="Share this shlok">
+                                <Button startIcon={<Share />}>Share</Button>
+                            </Tooltip>
                         </Stack>
-                        <IconButton onClick={handleCopy} title="Copy Shlok">
+                        <IconTooltip onClick={handleCopy} title="Copy shlok text">
                             <ContentCopy />
-                        </IconButton>
+                        </IconTooltip>
                     </CardActions>
                 </Card>
             </Stack>
-
-            {/* Notifications */}
-            <Snackbar open={showCopyToast} autoHideDuration={3000} onClose={() => setShowCopyToast(false)}>
-                <Alert onClose={() => setShowCopyToast(false)} severity="success" sx={{ width: '100%' }}>
-                    Shlok copied to clipboard!
-                </Alert>
-            </Snackbar>
-
-            <Snackbar open={showEndToast} autoHideDuration={3000} onClose={() => setShowEndToast(false)}>
-                <Alert onClose={() => setShowEndToast(false)} severity="info" sx={{ width: '100%' }}>
-                    You have reached the end of the Bhagavad Gita.
-                </Alert>
-            </Snackbar>
         </Container>
     );
 };
