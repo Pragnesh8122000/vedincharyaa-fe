@@ -1,4 +1,4 @@
-import './App.css'
+
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Layout from './components/Layout'
 import HomePage from './pages/HomePage'
@@ -22,8 +22,8 @@ import ProtectedRoute from './components/common/ProtectedRoute'; // Imported Pro
 function App() {
   return (
     <ToastProvider>
-      <AxiosInterceptor />
       <AuthProvider>
+        <AxiosInterceptor />
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Layout />}>
