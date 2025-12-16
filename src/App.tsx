@@ -14,10 +14,10 @@ import { AuthProvider } from './context/AuthContext';
 import SignupPage from './pages/SignupPage';
 import VerifyOtpPage from './pages/VerifyOtpPage';
 import LoginPage from './pages/LoginPage';
-import NotFoundPage from './pages/NotFoundPage'; // Imported 404 Page
+import NotFoundPage from './pages/NotFoundPage';
 import { ToastProvider } from './providers/ToastProvider';
 import AxiosInterceptor from './components/common/AxiosInterceptor';
-import ProtectedRoute from './components/common/ProtectedRoute'; // Imported ProtectedRoute
+import ProtectedRoute from './components/common/ProtectedRoute';
 
 function App() {
   return (
