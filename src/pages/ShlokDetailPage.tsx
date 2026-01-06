@@ -12,6 +12,7 @@ import { useAppSelector } from "../store/hooks";
 import { memorizationService } from "../services/memorizationService";
 import { School } from "@mui/icons-material";
 import IconTooltip from "../components/IconTooltip";
+import AiShlokSection from "../components/AiShlokSection";
 
 import { useToast } from "../providers/ToastProvider";
 
@@ -344,6 +345,9 @@ const ShlokDetailPage = () => {
                         </IconTooltip>
                     </CardActions>
                 </Card>
+
+                {/* AI Section (Phase 3) */}
+                <AiShlokSection shlokId={`${chapterNum}-${verseNum}`} />
             </Stack>
         </Container>
     );
