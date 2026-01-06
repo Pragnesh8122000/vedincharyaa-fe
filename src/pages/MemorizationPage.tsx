@@ -58,7 +58,7 @@ const MemorizationPage = () => {
 
     const handleRate = async (isCorrect: boolean) => {
         const currentShlok = dueShloks[currentIndex];
-        const shlokId = `${currentShlok.chapterNumber}-${currentShlok.verseNumber}`;
+        // const shlokId = `${currentShlok.chapterNumber}-${currentShlok.verseNumber}`;
 
         await memorizationService.updateProgress(currentShlok.chapterNumber, currentShlok.verseNumber, isCorrect);
         handleNext();

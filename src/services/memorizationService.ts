@@ -1,4 +1,4 @@
-import { getAllMemorization, updateProgress, startMemorization, removeMemorization, MemorizationProgress } from '../api/memorizationApi';
+import { getAllMemorization, updateProgress, startMemorization, removeMemorization } from '../api/memorizationApi';
 
 export const memorizationService = {
   getAll: async () => {
