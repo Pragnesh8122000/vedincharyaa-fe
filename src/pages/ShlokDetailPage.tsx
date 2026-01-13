@@ -1,5 +1,6 @@
 import { Box, Container, Typography, Stack, Button, Card, CardContent, CardActions, Divider, CircularProgress, Tooltip } from "@mui/material";
-import { ArrowBack, ContentCopy, Favorite, FavoriteBorder, Share, NavigateBefore, NavigateNext, PlayArrow } from "@mui/icons-material";
+import { ArrowBack, ContentCopy, Favorite, FavoriteBorder, Share, NavigateBefore, NavigateNext, RecordVoiceOver } from "@mui/icons-material";
+import { useSpeechSynthesis } from 'react-speech-kit';
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -7,7 +8,6 @@ import { getShlok } from "../api/shlokApi";
 import { getChapters } from "../api/chapterApi";
 import { addFavorite, removeFavorite, getFavorites } from "../api/favoritesApi";
 import { addHistory } from "../api/historyApi";
-import ShlokAudioPlayer from "../components/ShlokAudioPlayer";
 import { useAppSelector } from "../store/hooks";
 import { memorizationService } from "../services/memorizationService";
 import { School } from "@mui/icons-material";
@@ -22,8 +22,12 @@ const ShlokDetailPage = () => {
     const queryClient = useQueryClient();
     const settings = useAppSelector((state) => state.shlok.settings);
     const { showToast } = useToast();
+    const [speechType, setSpeechType] = useState<'shlok' | 'translation' | null>(null);
+    const { speak, cancel, speaking, voices } = useSpeechSynthesis({
+        onEnd: () => setSpeechType(null)
+    });
 
-    const [isChapterPlayMode, setIsChapterPlayMode] = useState(false);
+
 
     const chapterNum = parseInt(chapter || "1");
     const verseNum = parseInt(verse || "1");
@@ -134,6 +138,58 @@ const ShlokDetailPage = () => {
         }
     };
 
+    const handleSpeakShlok = () => {
+        if (!shlok) return;
+
+        if (speaking && speechType === 'shlok') {
+            cancel();
+            setSpeechType(null);
+            return;
+        }
+
+        cancel();
+        setSpeechType('shlok');
+
+        // Try to find a Hindi or Sanskrit voice for the Shlok
+        const hindiVoice = voices.find((v: SpeechSynthesisVoice) => v.lang.startsWith('hi') || v.lang.startsWith('sa'));
+        const englishVoice = voices.find((v: SpeechSynthesisVoice) => v.lang.startsWith('en')) || voices[0];
+
+        if (hindiVoice) {
+            speak({
+                text: shlok.sanskritText,
+                voice: hindiVoice,
+                rate: 0.7
+            });
+        } else {
+            speak({
+                text: shlok.transliteration,
+                voice: englishVoice,
+                rate: 0.8
+            });
+        }
+    };
+
+    const handleSpeakTranslation = () => {
+        if (!shlok) return;
+
+        if (speaking && speechType === 'translation') {
+            cancel();
+            setSpeechType(null);
+            return;
+        }
+
+        cancel();
+        setSpeechType('translation');
+
+        const englishVoice = voices.find((v: SpeechSynthesisVoice) => v.lang.startsWith('en')) || voices[0];
+
+        speak({
+            text: shlok.translationEnglish,
+            voice: englishVoice,
+            rate: 0.9
+        });
+    };
+
     const handleNext = () => {
         const currentChapter = chapters.find(c => c.chapterNumber === chapterNum);
         const maxVerses = currentChapter?.verseCount || 20;
@@ -142,11 +198,8 @@ const ShlokDetailPage = () => {
             navigate(`/shlok/${chapterNum}/${verseNum + 1}`);
         } else if (chapterNum < 18) {
             navigate(`/shlok/${chapterNum + 1}/1`);
-            // Stop chapter play mode if crossing chapters (optional choice)
-            // setIsChapterPlayMode(false); 
         } else {
             showToast('You have reached the end of the Bhagavad Gita.', 'info');
-            setIsChapterPlayMode(false);
         }
     };
 
@@ -158,15 +211,7 @@ const ShlokDetailPage = () => {
         }
     };
 
-    const handleAudioEnded = () => {
-        if (isChapterPlayMode || settings.autoPlayAudio) {
-            handleNext();
-        }
-    };
 
-    const toggleChapterPlay = () => {
-        setIsChapterPlayMode(!isChapterPlayMode);
-    };
 
     const handleCopy = () => {
         if (shlok) {
@@ -223,9 +268,45 @@ const ShlokDetailPage = () => {
                     <CardContent sx={{ p: 4 }}>
                         <Stack spacing={4} alignItems="center" textAlign="center">
                             {/* Sanskrit */}
-                            <Typography variant="h4" component="div" sx={{ fontFamily: 'serif', color: 'primary.main', fontWeight: 'medium' }}>
-                                {shlok.sanskritText}
-                            </Typography>
+                            <Box sx={{ width: '100%' }}>
+                                <Stack spacing={1} alignItems="center">
+                                    {(() => {
+                                        const lines = shlok.sanskritText.split('\n');
+                                        const speaker = lines.find(l => l.includes('उवाच'))?.trim();
+                                        const content = lines.filter(l => !l.includes('उवाच')).join(' ').replace(/\s+/g, ' ').trim();
+
+                                        const finalLines = [];
+                                        if (speaker) finalLines.push(speaker);
+
+                                        if (content) {
+                                            // Split at the first single danda | that separates the halves
+                                            const dandaIndex = content.indexOf('|');
+                                            if (dandaIndex !== -1 && dandaIndex < content.length - 1) {
+                                                finalLines.push(content.substring(0, dandaIndex + 1).trim());
+                                                finalLines.push(content.substring(dandaIndex + 1).trim());
+                                            } else {
+                                                finalLines.push(content);
+                                            }
+                                        }
+                                        return finalLines;
+                                    })().map((line, index, arr) => (
+                                        <Typography
+                                            key={index}
+                                            variant={line.includes('उवाच') ? "h5" : "h4"}
+                                            component="div"
+                                            sx={{
+                                                fontFamily: 'serif',
+                                                color: 'primary.main',
+                                                fontWeight: line.includes('उवाच') ? 'bold' : 'medium',
+                                                lineHeight: 1.6,
+                                                mb: index === arr.length - 1 ? 0 : (line.includes('उवाच') ? 2 : 0.5)
+                                            }}
+                                        >
+                                            {line}
+                                        </Typography>
+                                    ))}
+                                </Stack>
+                            </Box>
 
                             <Divider flexItem />
 
@@ -261,24 +342,26 @@ const ShlokDetailPage = () => {
                                 </Box>
                             )}
 
-                            {/* Audio Player */}
+                            {/* Speech Controls */}
                             <Box width="100%">
-                                <ShlokAudioPlayer
-                                    audioUrl={shlok.audioUrl}
-                                    onEnded={handleAudioEnded}
-                                    autoPlay={isChapterPlayMode || settings.autoPlayAudio}
-                                    onNext={handleNext}
-                                    onPrevious={handlePrevious}
-                                    title={`Chapter ${chapterNum}, Verse ${verseNum}`}
-                                />
                                 <Box display="flex" justifyContent="center" mt={1}>
                                     <Button
                                         size="small"
-                                        startIcon={<PlayArrow />}
-                                        onClick={toggleChapterPlay}
-                                        color={isChapterPlayMode ? "primary" : "inherit"}
+                                        startIcon={<RecordVoiceOver />}
+                                        onClick={handleSpeakShlok}
+                                        color={speaking && speechType === 'shlok' ? "primary" : "inherit"}
+                                        sx={{ ml: 1 }}
                                     >
-                                        {isChapterPlayMode ? "Stop Chapter Play" : "Play Chapter"}
+                                        {speaking && speechType === 'shlok' ? "Stop Shlok" : "Speak Shlok"}
+                                    </Button>
+                                    <Button
+                                        size="small"
+                                        startIcon={<RecordVoiceOver />}
+                                        onClick={handleSpeakTranslation}
+                                        color={speaking && speechType === 'translation' ? "primary" : "inherit"}
+                                        sx={{ ml: 1 }}
+                                    >
+                                        {speaking && speechType === 'translation' ? "Stop Translation" : "Speak Translation"}
                                     </Button>
                                 </Box>
                             </Box>

@@ -35,18 +35,6 @@ const SettingsPage = () => {
 
                             <Divider />
 
-                            <Box>
-                                <Typography variant="subtitle1" fontWeight="bold" gutterBottom>Audio</Typography>
-                                <FormControlLabel
-                                    control={
-                                        <Switch
-                                            checked={settings.autoPlayAudio}
-                                            onChange={(e) => dispatch(updateSettings({ autoPlayAudio: e.target.checked }))}
-                                        />
-                                    }
-                                    label="Auto-Play Next Shlok"
-                                />
-                            </Box>
 
                             <Divider />
 
